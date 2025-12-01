@@ -80,7 +80,7 @@ format = Documenter.HTML(;
 Documenter.makedocs(;
     modules = [repo],
     authors = "Jeff Fessler and contributors",
-    sitename = "$repo.jl",
+    sitename = "Work",
     format,
     pages = [
         "Home" => "index.md",
