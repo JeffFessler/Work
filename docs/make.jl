@@ -14,16 +14,15 @@ lit = joinpath(@__DIR__, "lit")
 src = joinpath(@__DIR__, "src")
 gen = joinpath(@__DIR__, "src/generated")
 
-base = "$org/$reps.jl"
+base = "$org/$reps
 repo_root_url = "https://github.com/$base/blob/main"
 nbviewer_root_url =
-    "https://nbviewer.org/github/$base/tree/gh-pages/dev/generated"
+    "https://nbviewer.org/github/$base/tree/gh-pages/generated"
 binder_root_url =
-    "https://mybinder.org/v2/gh/$base/gh-pages?filepath=dev/generated"
-
+    "https://mybinder.org/v2/gh/$base/gh-pages?filepath=generated"
 
 repo = eval(:($reps))
-Documenter.DocMeta.setdocmeta!(repo, :DocTestSetup, :(using $reps); recursive=true)
+
 
 # preprocessing
 inc1 = "include(\"../../../inc/reproduce.jl\")"
@@ -73,19 +72,17 @@ isci = get(ENV, "CI", nothing) == "true"
 format = Documenter.HTML(;
     prettyurls = isci,
     edit_link = "main",
-    canonical = "https://$org.github.io/$repo.jl/stable/",
+    canonical = "https://$org.github.io/$reps",
     assets = ["assets/custom.css"],
 )
 
 Documenter.makedocs(;
-    modules = [repo],
+    modules = Module[],
     authors = "Jeff Fessler and contributors",
     sitename = "Work",
     format,
     pages = [
         "Home" => "index.md",
-        "Methods" => "methods.md",
-        "Examples" => pages("examples")
     ],
 )
 
@@ -93,10 +90,11 @@ if isci
     Documenter.deploydocs(;
         repo = "github.com/$base",
         devbranch = "main",
-        devurl = "dev",
-        versions = ["stable" => "v^", "dev" => "dev"],
+        versions = nothing,
         forcepush = true,
         push_preview = true,
         # see https://$org.github.io/$repo.jl/previews/PR##
     )
+else
+    @warn "may need to: rm -r src/generated/"
 end
