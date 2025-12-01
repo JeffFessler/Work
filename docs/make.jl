@@ -1,7 +1,7 @@
 execute = isempty(ARGS) || ARGS[1] == "run"
 
 org, reps = :JeffFessler, :Work
-# eval(:(using $reps))
+eval(:(using $reps))
 import Documenter
 import Literate
 
