@@ -102,9 +102,24 @@ But what regularization parameter β to choose?
 
 Cross-validation is one approach to choose.
 
-todo
+Here we use the simpler "oracle" approach
+of finding the β value that leads
+to the best fit to the true function
+(which would be unknown in practice).
+
 =#
 
+function nrmse_fit(β::Real)
+    A = [B; sqrt(β)*I]
+    xr = A \ yz
+    yr = +([b.(tf) * xr[i] for (i,b) in enumerate(basis)]...)
+    return norm(yr - yf) / norm(yf)
+end;
+
+# It turns out here that Tikhonov regularization does not reduce NRMSE:
+βlist = 10 .^ (-5:0.2:5)
+nrmse = nrmse_fit.(βlist)
+pn = plot(log10.(βlist), nrmse; title="NRMSE", xlabel="log10(β)")
 
 
-#todo include("../../../inc/reproduce.jl")
+include("../../../inc/reproduce.jl")
