@@ -49,8 +49,9 @@ t = tmax * sort(rand(N)) # random samples on [0,3]
 f(t) = 1 < t < 2 # rect function
 y = f.(t); # noiseless data for now
 
-# plot data and true signal
+# plot data and true signal (finely sampled)
 yaxis = ((-0.2, 1.4), -0.2:0.2:1.4)
+tf = range(-0.3, tmax+0.3, 1001)
 p0 = scatter(t, y; yaxis, color=:black, label="data")
 plot!(p0, tf, f.(tf), label="true")
 
@@ -64,7 +65,6 @@ knots = range(0, tmax, M) |> collect
 basis = BSplineBasis(BSplineOrder(degree + 1), knots) # ; periodic=true
 
 # Plot finely sampled B-spline basis functions
-tf = range(-0.3, tmax+0.3, 1001)
 Bf = hcat([b.(tf) for b in basis]...)
 pb1 = plot(tf, Bf; title="Basis functions, degree=$degree")
 
@@ -122,4 +122,4 @@ nrmse = nrmse_fit.(βlist)
 pn = plot(log10.(βlist), nrmse; title="NRMSE", xlabel="log10(β)")
 
 
-include("../../../inc/reproduce.jl")
+include("../../inc/reproduce.jl")
