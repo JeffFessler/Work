@@ -1,7 +1,7 @@
 execute = isempty(ARGS) || ARGS[1] == "run"
 
-org, reps = :JuliaImageRecon, :Template
-eval(:(using $reps))
+org, reps = :JeffFessler, :Work
+# eval(:(using $reps))
 import Documenter
 import Literate
 

@@ -1,12 +1,12 @@
 ```@meta
-CurrentModule = Template
+CurrentModule = Work
 ```
 
-# Template.jl Documentation
+# Work.jl Documentation
 
 ## Overview
 
 This Julia package
-[(Template)](https://github.com/JeffFessler/Template.jl)
+[(Work)](https://github.com/JeffFessler/Work.jl)
 
 See the "Examples" for details.

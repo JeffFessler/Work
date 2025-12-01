@@ -1,11 +1,13 @@
 #=
-# [Template overview](@id 01-overview)
+# [Spline grid fitting](@id 01-spline)
 
-This page illustrates the Julia package
-[`Template`](https://github.com/JeffFessler/Template.jl).
+This page illustrates finite-series modeling with splines
+with the intention of comparing to INR.
+
+[`URL`](https://github.com/JeffFessler/Work).
 
 This page was generated from a single Julia file:
-[01-overview.jl](@__REPO_ROOT_URL__/01-overview.jl).
+[01-spline.jl](@__REPO_ROOT_URL__/01-spline.jl).
 =#
 
 #md # In any such Julia documentation,
@@ -14,9 +16,9 @@ This page was generated from a single Julia file:
 
 #md # The corresponding notebook can be viewed in
 #md # [nbviewer](https://nbviewer.org/) here:
-#md # [`01-overview.ipynb`](@__NBVIEWER_ROOT_URL__/01-overview.ipynb),
+#md # [`01-spline.ipynb`](@__NBVIEWER_ROOT_URL__/01-spline.ipynb),
 #md # and opened in [binder](https://mybinder.org/) here:
-#md # [`01-overview.ipynb`](@__BINDER_ROOT_URL__/01-overview.ipynb).
+#md # [`01-spline.ipynb`](@__BINDER_ROOT_URL__/01-spline.ipynb).
 
 
 # ### Setup
@@ -26,6 +28,7 @@ This page was generated from a single Julia file:
 using Template
 using MIRTjim: jim, prompt
 using InteractiveUtils: versioninfo
+using Pltos
 
 
 # The following line is helpful when running this file as a script;
@@ -34,7 +37,7 @@ using InteractiveUtils: versioninfo
 isinteractive() ? jim(:prompt, true) : prompt(:draw);
 
 
-# ### Overview
+# ### Setup
 
 #=
 =#
