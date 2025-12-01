@@ -1,0 +1,18 @@
+#!/bin/csh
+
+pushd ~/.julia/dev/
+
+set ymls = "clean.yml"
+# set repos = A-Z*
+foreach yml ($ymls)
+    set template = template/github-workflows/$yml
+    echo $template
+    set repos = `find . -name "$yml" -print`
+    foreach repo ($repos)
+        echo $repo
+        diff $repo $template
+    end
+    ls -al $repos $template
+end
+
+popd
