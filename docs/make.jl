@@ -25,7 +25,7 @@ repo = eval(:($reps))
 
 
 # preprocessing
-inc1 = "include(\"../../../inc/reproduce.jl\")"
+inc1 = "include(\"../../inc/reproduce.jl\")"
 
 function prep_markdown(str, root, file)
     inc_read(file) = read(joinpath("docs/inc", file), String)
