@@ -83,6 +83,7 @@ Documenter.makedocs(;
     format,
     pages = [
         "Home" => "index.md",
+        "Examples" => pages("examples"),
     ],
 )
 
