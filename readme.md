@@ -2,7 +2,7 @@
 
 https://github.com/JeffFessler/Work
 
-[![docs][docs]][docs-url]
+[![docs][docs-img]][docs-url]
 [![license][license-img]][license-url]
 
 WIP
