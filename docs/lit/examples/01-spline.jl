@@ -49,8 +49,9 @@ t = tmax * sort(rand(N)) # random samples on [0,3]
 f(t) = 1 < t < 2 # rect function
 y = f.(t); # noiseless data for now
 
-# plot data and true signal
+# plot data and true signal (finely sampled)
 yaxis = ((-0.2, 1.4), -0.2:0.2:1.4)
+tf = range(-0.3, tmax+0.3, 1001)
 p0 = scatter(t, y; yaxis, color=:black, label="data")
 plot!(p0, tf, f.(tf), label="true")
 
@@ -64,7 +65,6 @@ knots = range(0, tmax, M) |> collect
 basis = BSplineBasis(BSplineOrder(degree + 1), knots) # ; periodic=true
 
 # Plot finely sampled B-spline basis functions
-tf = range(-0.3, tmax+0.3, 1001)
 Bf = hcat([b.(tf) for b in basis]...)
 pb1 = plot(tf, Bf; title="Basis functions, degree=$degree")
 
@@ -102,9 +102,24 @@ But what regularization parameter β to choose?
 
 Cross-validation is one approach to choose.
 
-todo
+Here we use the simpler "oracle" approach
+of finding the β value that leads
+to the best fit to the true function
+(which would be unknown in practice).
+
 =#
 
+function nrmse_fit(β::Real)
+    A = [B; sqrt(β)*I]
+    xr = A \ yz
+    yr = +([b.(tf) * xr[i] for (i,b) in enumerate(basis)]...)
+    return norm(yr - yf) / norm(yf)
+end;
+
+# It turns out here that Tikhonov regularization does not reduce NRMSE:
+βlist = 10 .^ (-5:0.2:5)
+nrmse = nrmse_fit.(βlist)
+pn = plot(log10.(βlist), nrmse; title="NRMSE", xlabel="log10(β)")
 
 
-#todo include("../../../inc/reproduce.jl")
+include("../../inc/reproduce.jl")
