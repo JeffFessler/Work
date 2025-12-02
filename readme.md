@@ -2,17 +2,16 @@
 
 https://github.com/JeffFessler/Work
 
-[![docs-stable][docs-stable-img]][docs-stable-url]
-[![docs-dev][docs-dev-img]][docs-dev-url]
+[![docs][docs]][docs-url]
 [![license][license-img]][license-url]
 
 WIP
 
+Click the "Demo" button to see.
+
 
 <!-- URLs -->
-[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[docs-stable-url]: https://JeffFessler.github.io/Work/stable
-[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
-[docs-dev-url]: https://JeffFessler.github.io/Work/dev
+[docs-img]: https://img.shields.io/badge/Demo-blue.svg
+[docs-url]: https://JeffFessler.github.io/Work
 [license-img]: https://img.shields.io/badge/license-MIT-brightgreen.svg
 [license-url]: LICENSE
