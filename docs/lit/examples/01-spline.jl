@@ -60,7 +60,7 @@ plot!(p0, tf, ytf, label="true")
 # B-spline settings
 degree = 3
 M = 40
-knots = range(0, tmax, M) |> collect
+knots = range(0, tmax, M) |> collect;
 
 # Make B-spline basis objects
 basis = BSplineBasis(BSplineOrder(degree + 1), knots) # ; periodic=true
@@ -74,7 +74,7 @@ B = hcat([b.(t) for b in basis]...)
 pb2 = deepcopy(pb1)
 scatter!(pb2, t, B; title="Basis function samples")
 
-# LS fit of B-splines to data
+# ### LS fit of B-splines to data
 xh = B \ y
 yhf = +([b.(tf) * xh[i] for (i,b) in enumerate(basis)]...);
 
@@ -87,6 +87,8 @@ plot!(p1, tf, yhf; label="bspline, NRMSE=$(round3(do_nrmse(yhf)))")
 
 
 #=
+### Tikhonov regularization
+
 Evidently the unregularized B-spline fit here
 is over-fitting, even though ``N < M``,
 so next we try simple Tikhonov regularization.
@@ -108,7 +110,9 @@ plot!(p2, tf, yfr,
 
 
 #=
-But what regularization parameter β to choose?
+### Parameter tuning
+
+What regularization parameter β to choose?
 
 Cross-validation is one approach to choose.
 
@@ -136,11 +140,17 @@ pn = plot(log10.(βlist), 100*nrmse; title="NRMSE (%)", xlabel="log10(β)",
 )
 plot!(log10(βbest) * [1, 1], [10, 40], color=:red)
 
+#
 yfb = do_fit(βbest)
 p3 = deepcopy(p0)
 nrmse_best = nrmse_fit(βbest)
 plot!(p3, tf, yfb,
  label="bspline β=$(round3(βbest)), NRMSE=$(round3(nrmse_best))")
 
+#=
+### Extensions
+- 2D image instead of 1D signal
+- comparison with implicit neural representation (INR)
+=#
 
 include("../../inc/reproduce.jl")
