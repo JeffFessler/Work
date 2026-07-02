@@ -128,17 +128,17 @@ function model_setup(data, label, reg)
 
     A = label .* data' # M × N matrix of features times labels
 
-    # Cost function
+    ## Cost function
     f_cost(x::AbstractVector) = sum(pot, A * x)
     f_grad(x) = A' * dpot.(A * x) # gradient of F
     F_cost(x::AbstractVector) = f_cost(x) + reg * sum(abs, x)
     F_cost(x::AbstractMatrix) = F_cost.(eachcol(x)) # to handle arrays
 
-    # proximal operator
+    ## proximal operator
     soft(z,c) = sign(z) * max(abs(z) - c, 0) # soft thresholding
     g_prox(z, c) = soft.(z, reg * c)
 
-    # subgradient of overall cost function
+    ## subgradient of overall cost function
     F_grad(x) = f_grad(x) + reg * sign.(x)
 
     return (; f_cost, f_grad, f_L, g_prox, F_cost, F_grad)
