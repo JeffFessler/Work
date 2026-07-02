@@ -173,7 +173,7 @@ the classifier is simply
 where the feature vector ``v``
 typically includes the intercept ``1``.
 
-# In
+In
 - `data` `N × M` where `N` is number of features
   (typically including offset aka bias aka intercept ``1``)
 - `label` vector of `M` labels ±1
@@ -181,10 +181,10 @@ typically includes the intercept ``1``.
 - `fun` see `pogm_restart`; default: count number of nonzero elements of x
 - `niter` # of iterations (default 20)
 
-# Option
+Option
 - `x0` initial guess of weight vector
 
-# Out
+Out
 - `xh` minimizer of ``f(x)``
 - `out` output of `pogm_restart`
 """
