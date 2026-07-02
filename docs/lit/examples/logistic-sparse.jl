@@ -123,7 +123,7 @@ function model_setup(data, label, reg)
     wpot0 = 1/4 # logistic curvature maximum
     tmp = data * data' # (npar, npar) covariance
     tmp = eigvals(tmp)
-    @show maximum(tmp) / minimum(tmp)
+#src @show maximum(tmp) / minimum(tmp) # condition number
     f_L = maximum(tmp) * wpot0 # Lipschitz
 
     A = label .* data' # M × N matrix of features times labels
@@ -224,12 +224,15 @@ end;
 
 #=
 ## Find sparse regression weights using POGM
+The resulting sparsity pattern is appropriate
 =#
 if !@isdefined(xpogm)
     reg = 2^2 # todo: use cross validation to select
     niter = 20
     xpogm, pogm_nnz = logistic_sparse(vv, yy, reg; niter, how = :pogm)
-end;
+end
+xideal = [1; -1; zeros(5)] # due to data generation model
+table1 = ["ideal" "fitted"; xideal round.(xpogm, sigdigits=4) ]
 
 
 #=
@@ -237,12 +240,16 @@ end;
 Technically QN is inapplicable
 because the cost function is not differentiable,
 but we try it anyway.
+
+The solution is "almost, but not quite" sparse,
+so a user-selected threshold would be needed.
 =#
 if !@isdefined(xqn)
     xqn, outq = logistic_sparse(vv, yy, reg; niter, how = :qn)
 end;
+table2 = ["ideal" "fitted-QN"; xideal round.(xqn, sigdigits=4) ]
 
-# Compare final cost functions
+# Compare final cost functions (POGM is slightly lower)
 model = model_setup(vv, yy, reg)
 [model.F_cost(xpogm), model.F_cost(xqn)]
 
@@ -258,13 +265,13 @@ psh
 #
 prompt()
 
-# Rerun while saving iterates
+# Rerun while saving iterates for plotting
 if true
     fun = (iter, xk, yk, is_restart) -> xk
     _, outp = logistic_sparse(vv, yy, reg; niter, how = :pogm, fun)
-end
+end;
 
-# Plot iterates
+# Plot iterates; convergence is quite fast here
 xps = hcat(outp...)'
 ppi = plot(0:niter, xps, marker=:dot, # label = "POGM",
     xlabel="iteration", yaxis = ("parameter", (-1.6, 1.6), -1:1) )
@@ -302,3 +309,14 @@ histogram!(inprod0; alpha, bins, color = :green, linecolor = :green,
  label = "class 0: $accuracy0%")
 histogram!(inprod1; alpha, bins, color = :blue, linecolor = :blue,
  label = "class 1: $accuracy1%")
+
+
+#
+prompt()
+
+# Accuracy for ideal weight vector (very similar as sparse logistic regression)
+inprod0ideal = [v0; ones(1,n0)]' * xideal
+inprod1ideal = [v1; ones(1,n1)]' * xideal
+accuracy0ideal = round(count(<(0), inprod0) / n0 * 100, digits=1)
+accuracy1ideal = round(count(>(0), inprod1ideal) / n1 * 100, digits=1)
+["class 0: $accuracy0%" "class 1: $accuracy1%"]
