@@ -49,7 +49,7 @@ using Plots: histogram!, plot, plot!, scatter, scatter!
 using Random: seed!
 using Statistics: mean
 default(); default(markersize=6, linewidth=2, markerstrokecolor=:auto, label="",
- tickfontsize=12, labelfontsize=18, legendfontsize=18, titlefontsize=18)
+ tickfontsize=12, labelfontsize=14, legendfontsize=12, titlefontsize=16)
 
 # The following line is helpful when running this file as a script;
 # this way it will prompt user to hit a key after each figure is displayed.
@@ -75,9 +75,11 @@ if !@isdefined(yy)
         v0 = [v0; rand(nex,n0)] # (2+nex, n0)
         v1 = [v1; rand(nex,n1)] # (2+nex, n1)
     end
+    v0 = [v0; ones(1,n0)] # (npar, n0) training data - with intercept
+    v1 = [v1; ones(1,n1)] # (npar, n1) training data - with intercept
     M = n0 + n1 # how many samples
     yy = [-ones(Int, n0); ones(Int, n1)] # (M) labels
-    vv = [[v0 v1]; ones(1,M)] # (npar, M) training data - with intercept
+    vv = [v0 v1] # (npar, M) training data - with intercept
     npar = 3 + nex # unknown parameters
 end;
 
@@ -131,15 +133,15 @@ function model_setup(data, label, reg)
     ## Cost function
     f_cost(x::AbstractVector) = sum(pot, A * x)
     f_grad(x) = A' * dpot.(A * x) # gradient of F
-    F_cost(x::AbstractVector) = f_cost(x) + reg * sum(abs, x)
+    F_cost(x::AbstractVector) = f_cost(x) + reg * sum(abs, @view x[1:(end-1)])
     F_cost(x::AbstractMatrix) = F_cost.(eachcol(x)) # to handle arrays
 
     ## proximal operator
     soft(z,c) = sign(z) * max(abs(z) - c, 0) # soft thresholding
-    g_prox(z, c) = soft.(z, reg * c)
+    g_prox(z, c) = [soft.(z[1:(end-1)], reg * c); z[end]]
 
-    ## subgradient of overall cost function
-    F_grad(x) = f_grad(x) + reg * sign.(x)
+    ## subgradient of overall cost function (used for QN)
+    F_grad(x) = f_grad(x) + reg * [sign.(x[1:(end-1)]); 0]
 
     return (; f_cost, f_grad, f_L, g_prox, F_cost, F_grad)
 end
@@ -152,12 +154,17 @@ Perform sparse logistic regression
 for binary `label`s
 by minimizing the cost function
 ``
-F(x) = f(x) + β ‖ x ‖₁,
+F(x) = f(x) + β ‖ x[1:end-1] ‖₁,
 f(x) = 1_M' h.(A x)
 ``
 where
 ``h(z) = log(1 + e^{-z})``
 is the logistic loss function.
+
+The regularizer
+``‖ x[1:end-1] ‖₁``
+does not penalize the last coefficient of `x`,
+because that is the "bias/intercept" term.
 
 Internally,
 this function
@@ -171,11 +178,12 @@ After optimizing ``x``,
 the classifier is simply
 ``\text{sign}(⟨v,x⟩)``
 where the feature vector ``v``
-typically includes the intercept ``1``.
+includes the intercept ``1``
+as the last entry.
 
 In
 - `data` `N × M` where `N` is number of features
-  (typically including offset aka bias aka intercept ``1``)
+  (including offset aka bias aka intercept ``1``)
 - `label` vector of `M` labels ±1
 - `reg` regularization parameter (β)
 - `fun` see `pogm_restart`; default: count number of nonzero elements of x
@@ -230,9 +238,7 @@ if !@isdefined(xpogm)
     reg = 2^2 # todo: use cross validation to select
     niter = 20
     xpogm, pogm_nnz = logistic_sparse(vv, yy, reg; niter, how = :pogm)
-end
-xideal = [1; -1; zeros(5)] # due to data generation model
-table1 = ["ideal" "fitted"; xideal round.(xpogm, sigdigits=4) ]
+end;
 
 
 #=
@@ -247,11 +253,13 @@ so a user-selected threshold would be needed.
 if !@isdefined(xqn)
     xqn, outq = logistic_sparse(vv, yy, reg; niter, how = :qn)
 end;
-table2 = ["ideal" "fitted-QN"; xideal round.(xqn, sigdigits=4) ]
+xideal = [1; -1; zeros(5)] # due to data generation model
+table1 = ["ideal" "fitted-POGM" "fitted-QN";
+     xideal round.(xpogm, sigdigits=3) round.(xqn, sigdigits=3)]
 
 # Compare final cost functions (POGM is slightly lower)
 model = model_setup(vv, yy, reg)
-[model.F_cost(xpogm), model.F_cost(xqn)]
+tablem = [model.F_cost(xpogm), model.F_cost(xqn)]
 
 # Plot decision boundaries
 if true
@@ -285,8 +293,9 @@ prompt()
 
 # Plot cost
 #src extra = do_restart ? " (restart)" : ""
-#src pc = plot(xaxis = ("iteration", (0,10)), yaxis = ("Cost function",))
-ppc = scatter(0:niter, model.F_cost(xps'), label = "POGM")
+ppc = plot(xaxis = ("iteration", (0,10), 0:2:10),
+    yaxis = ("Cost function",), widen=true)
+scatter!(0:niter, model.F_cost(xps'), label = "POGM",)
 
 #
 prompt()
@@ -294,29 +303,24 @@ prompt()
 
 #=
 ## Plot 1D separation
+with accuracy labels
 =#
+function _hist(x, title)
+    inprod0 = v0' * x
+    inprod1 = v1' * x
+    accuracy0 = round(count(<(0), inprod0) / n0 * 100, digits=1)
+    accuracy1 = round(count(>(0), inprod1) / n1 * 100, digits=1)
 
-inprod0 = [v0; ones(1,n0)]' * xh
-inprod1 = [v1; ones(1,n1)]' * xh
-
-accuracy0 = round(count(<(0), inprod0) / n0 * 100, digits=1)
-accuracy1 = round(count(>(0), inprod1) / n1 * 100, digits=1)
-
-pp1 = plot(xaxis=("⟨x,v⟩",))
-bins = -12:12
-alpha = 0.5
-histogram!(inprod0; alpha, bins, color = :green, linecolor = :green,
- label = "class 0: $accuracy0%")
-histogram!(inprod1; alpha, bins, color = :blue, linecolor = :blue,
- label = "class 1: $accuracy1%")
-
-
-#
-prompt()
-
-# Accuracy for ideal weight vector (very similar as sparse logistic regression)
-inprod0ideal = [v0; ones(1,n0)]' * xideal
-inprod1ideal = [v1; ones(1,n1)]' * xideal
-accuracy0ideal = round(count(<(0), inprod0) / n0 * 100, digits=1)
-accuracy1ideal = round(count(>(0), inprod1ideal) / n1 * 100, digits=1)
-["class 0: $accuracy0%" "class 1: $accuracy1%"]
+    p = plot(xaxis=("⟨x,v⟩",); title)
+    bins = -12:12
+    alpha = 0.5
+    histogram!(inprod0; alpha, bins, color = :green, linecolor = :green,
+     label = "class 0: $accuracy0%")
+    histogram!(inprod1; alpha, bins, color = :blue, linecolor = :blue,
+     label = "class 1: $accuracy1%")
+    return p
+end
+p1h = _hist(xh, "POGM")
+p1q = _hist(xqn, "QN")
+p1i = _hist(xideal, "Ideal")
+p1 = plot(p1h, p1q, p1i, layout=(3,1), size=(600,800))
