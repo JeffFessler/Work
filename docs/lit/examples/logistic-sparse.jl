@@ -138,10 +138,10 @@ function model_setup(data, label, reg)
 
     ## proximal operator
     soft(z,c) = sign(z) * max(abs(z) - c, 0) # soft thresholding
-    g_prox(z, c) = [soft.(z[1:(end-1)], reg * c); z[end]]
+    g_prox(z, c) = [soft.((@view z[1:(end-1)]), reg * c); z[end]]
 
     ## subgradient of overall cost function (used for QN)
-    F_grad(x) = f_grad(x) + reg * [sign.(x[1:(end-1)]); 0]
+    F_grad(x) = f_grad(x) + reg * [sign.(@view x[1:(end-1)]); 0]
 
     return (; f_cost, f_grad, f_L, g_prox, F_cost, F_grad)
 end
